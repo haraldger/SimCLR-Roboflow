@@ -58,6 +58,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+*.pt
+*wandb*
+
 # C extensions
 *.so
 
