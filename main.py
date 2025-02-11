@@ -1,35 +1,12 @@
 import argparse
-
 import torch
-from torch.utils.data import DataLoader
-from torch.optim.lr_scheduler import CosineAnnealingLR
-from lightly.transforms import SimCLRTransform
-from lightly.data import LightlyDataset
-from lightly.loss import NTXentLoss
 
-from models.CLRNet import CLRNet
 from training.epochs import training_epoch, validation_epoch
-from training.utils import get_optimizer, get_normalization
+from training.factory import data_factory, training_factory
 
 def main(config):
-    training_data_path = 'data/train/images'
-    validation_data_path = 'data/valid/images'
-
-    # Configure data objects
-    normalization = get_normalization(training_data_path)
-    transforms = SimCLRTransform(input_size=640, normalize=normalization)
-
-    training_dataset = LightlyDataset(input_dir=training_data_path, transform=transforms)
-    training_dataloader = DataLoader(training_dataset, batch_size=config["batch_size"], shuffle=True, drop_last=True, num_workers=0)
-
-    validation_dataset = LightlyDataset(input_dir=validation_data_path, transform=transforms)
-    validation_dataloader = DataLoader(validation_dataset, batch_size=config["batch_size"], shuffle=False, drop_last=False, num_workers=0)
-
-    # Configure training objects
-    model = CLRNet(size=config["model_size"])
-    loss_fn = NTXentLoss(temperature=config["tau"])
-    optimizer = get_optimizer(config["optimizer"], model, config["learning_rate"], config["weight_decay"])
-    scheduler = CosineAnnealingLR(optimizer, T_max=len(training_dataloader))
+    data_objects = data_factory(config=config)
+    training_objects = training_factory(config=config, objects=data_objects)
 
     # Train the model
     best_loss = float('inf')
@@ -37,17 +14,19 @@ def main(config):
         print(f'Epoch {epoch}/{config["epochs"]}')
 
         # Train the model
-        training_loss = training_epoch(model, training_dataloader, loss_fn, optimizer, scheduler)
+        training_loss = training_epoch(data_objects=data_objects, training_objects=training_objects)
         print(f'Training Loss: {training_loss}')
 
         # Evaluate the model
-        validation_loss = validation_epoch(model, validation_dataloader, loss_fn)
+        validation_loss = validation_epoch(data_objects=data_objects, training_objects=training_objects)
         print(f'Validation Loss: {validation_loss}')
 
         # Save the model if validation loss is the best we've seen so far
         if validation_loss < best_loss:
             print('Validation loss decreased. Saving model...')
             best_loss = validation_loss
+
+            model = training_objects["model"]
             torch.save(model.state_dict(), config["output_path"])
 
     print(f'Training complete. Model saved to {config["output_path"]}')

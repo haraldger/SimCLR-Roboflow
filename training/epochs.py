@@ -1,8 +1,15 @@
 import torch
 
-def training_epoch(model, dataloader, loss_fn, optimizer, scheduler=None):
+def training_epoch(data_objects, training_objects):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     epoch_loss = 0
+
+    # Unpack objects
+    dataloader = data_objects["training_dataloader"]
+    model = training_objects["model"]
+    loss_fn = training_objects["loss_fn"]
+    optimizer = training_objects["optimizer"]
+    scheduler = training_objects["scheduler"]
 
     model.train()
     for idx, ((images0, images1), _, _) in enumerate(dataloader):
@@ -28,9 +35,14 @@ def training_epoch(model, dataloader, loss_fn, optimizer, scheduler=None):
     epoch_loss /= len(dataloader)
     return epoch_loss
 
-def validation_epoch(model, dataloader, loss_fn):
+def validation_epoch(data_objects, training_objects):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     epoch_loss = 0
+
+    # Unpack objects
+    dataloader = data_objects["validation_dataloader"]
+    model = training_objects["model"]
+    loss_fn = training_objects["loss_fn"]
 
     model.eval()
     with torch.no_grad():
