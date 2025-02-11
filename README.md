@@ -1,7 +1,6 @@
 ## Setup
 
-It is recommended to create a virtual environment to execute the code in this repo. Do so by running the command `python -m venv .venv` and activate the environment with `source .venv/bin/activate`.
-Next, install the required dependencies by executing the following commands:
+It is recommended to create a virtual environment to execute the code in this repo. Do so by running the command `python -m venv .venv` and activate the environment with `source .venv/bin/activate`. Next, install the required dependencies by executing the following commands:
 
 ```
 pip install --upgrade pip
@@ -10,6 +9,18 @@ pip install -r requirements.txt
 
 ## Project structure
 
-**data/**: This directory contains the PyTorch data objects.
+**main.py**: This program will perform the SimCLR pre-training on the Roboflow Firefighter dataset. To run the program, execute the following: `python main.py`. These are the optional arguments, e.g., training hyperparameters:
+- `--epochs`
+- `--model_size`
+- `--batch_size`
+- `--optimizer`
+- `--learning_rate`
+- `--weight_decay`
+- `--tau`
+- `--output_path`
 
-**raw_data/**: This directory contains the raw data files retrieved from Roboflow.
+**data/**: This directory contains the data files retrieved from Roboflow.
+
+**models/**: Directory for model architectures. The file `CLRNet.py` contains the network definition for a ResNet-based backbone with a SimCLR head.
+
+**training/**: Directory containing utils and training loop definitions.
